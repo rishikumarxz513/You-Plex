@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You-Plex | Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">You-Plex</div>
+        <div class="nav-links">
+            <a href="/video" class="nav-item">Video</a>
+            <a href="/audio" class="nav-item">Audio</a>
+            <a href="/playlist" class="nav-item">Playlist</a>
+            <a href="/captions" class="nav-item">Captions <span class="beta-tag">(Beta)</span></a>
+        </div>
+    </nav>
+
+    <main class="hero-container">
+        
+        <div class="content-wrapper" id="heroContent">
+            <div class="text-section">
+                <h1 class="main-title">Download<br>YouTube Videos</h1>
+                <h2 class="sub-title">High quality. Fast. Simple.</h2>
+            </div>
+            <div class="graphic-section">
+                <div class="cube-box"><i class="fab fa-youtube"></i></div>
+                <div class="store-front">
+                    <div class="awning"></div>
+                    <div class="window"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-bar-wrapper">
+                <input type="text" id="searchInput" placeholder="Search for a video or paste link..." onkeypress="handleEnter(event)">
+                <button class="search-btn" id="searchBtn" onclick="performSearch()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="resultsArea" class="results-grid" style="display: none;">
+            </div>
+
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+        </div>
+        <div class="theme-toggle"><i class="fas fa-moon"></i></div>
+    </footer>
+
+    <script>
+        function handleEnter(e) {
+            if (e.key === 'Enter') performSearch();
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value;
+            const btn = document.getElementById('searchBtn');
+            const hero = document.getElementById('heroContent');
+            const resultsArea = document.getElementById('resultsArea');
+
+            if (!query) {
+                alert("Please enter a search term!");
+                return;
+            }
+
+            // 1. Show Loading State
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            // 2. Prepare Form Data for Python Backend
+            const formData = new FormData();
+            formData.append('query', query);
+
+            try {
+                // 3. Call the Python '/search' route
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const videos = await response.json();
+
+                // 4. Update UI
+                hero.style.display = 'none'; // Hide the 3D graphics
+                resultsArea.style.display = 'grid'; // Show grid
+                resultsArea.innerHTML = ''; // Clear old results
+
+                // 5. Loop through videos and create cards
+                videos.forEach(video => {
+                    // Create Card HTML
+                    const card = `
+                        <div class="video-card" onclick="goToDownload('${video.url}')">
+                            <div class="thumb-wrapper">
+                                <img src="${video.thumbnail}" alt="thumb">
+                                <span class="duration-badge">${Math.floor(video.duration/60)}:${(video.duration%60).toString().padStart(2, '0')}</span>
+                            </div>
+                            <div class="video-info">
+                                <h3>${video.title}</h3>
+                            </div>
+                        </div>
+                    `;
+                    resultsArea.innerHTML += card;
+                });
+
+            } catch (error) {
+                console.error("Search failed:", error);
+                alert("Search failed. Check console.");
+            } finally {
+                // Reset Button
+                btn.innerHTML = '<i class="fas fa-search"></i>';
+            }
+        }
+
+        function goToDownload(url) {
+            // Redirect to the video download page with the selected URL
+            window.location.href = `/video?url=${encodeURIComponent(url)}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You-Plex | Captions (Beta)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo"><a href="/" style="text-decoration:none; color:inherit;">You-Plex</a></div>
+        <div class="nav-links">
+            <a href="/video" class="nav-item">Video</a>
+            <a href="/audio" class="nav-item">Audio</a>
+            <a href="/playlist" class="nav-item">Playlist</a>
+            <a href="/captions" class="nav-item active">Captions <span class="beta-tag">(Beta)</span></a>
+        </div>
+    </nav>
+
+    <main class="hero-container">
+        <div class="glass-card" style="text-align: center; align-items: center;">
+            
+            <div class="card-header">
+                <div class="icon-circle" style="color: #ff7675;"> <i class="fas fa-closed-captioning"></i>
+                </div>
+                <h2>Subtitle Extractor</h2>
+            </div>
+
+            <div style="margin: 1rem 0;">
+                <span class="badge-coming-soon">Coming Soon</span>
+                <p style="margin-top: 1.5rem; color: var(--text-light); line-height: 1.6;">
+                    We are currently fine-tuning the subtitle engine.<br>
+                    You will soon be able to extract <strong>.SRT</strong> files in any language.
+                </p>
+            </div>
+
+            <a href="/" style="text-decoration: none; width: 100%;">
+                <button id="downloadBtn" style="background: linear-gradient(135deg, #b2bec3, #636e72);">
+                    <span>Back to Home</span>
+                    <i class="fas fa-home"></i>
+                </button>
+            </a>
+
+        </div>
+    </main>
+
+    <style>
+        .badge-coming-soon {
+            background: rgba(255, 118, 117, 0.1);
+            color: #ff7675;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 118, 117, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 118, 117, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 118, 117, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 118, 117, 0); }
+        }
+    </style>
+
+</body>
+</html>

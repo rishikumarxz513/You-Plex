@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You-Plex | Video Download</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo"><a href="/" style="text-decoration:none; color:inherit;">You-Plex</a></div>
+        <div class="nav-links">
+            <a href="/video" class="nav-item active">Video</a>
+            <a href="/audio" class="nav-item">Audio</a>
+            <a href="/playlist" class="nav-item">Playlist</a>
+            <a href="/captions" class="nav-item">Captions <span class="beta-tag">(Beta)</span></a>
+        </div>
+    </nav>
+
+    <main class="hero-container">
+        <div class="glass-card">
+            
+            <div class="card-header">
+                <div class="icon-circle">
+                    <i class="fas fa-video"></i>
+                </div>
+                <h2>Video Downloader</h2>
+                <p>Extract MP4 in highest resolution</p>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="videoUrl" value="{{ url }}" placeholder="Paste link here if empty...">
+            </div>
+
+            <button id="downloadBtn" onclick="startDownload()">
+                <span>Start Download</span>
+                <i class="fas fa-download"></i>
+            </button>
+
+            <div class="progress-wrapper" id="progressWrapper" style="display: none;">
+                <div class="progress-info">
+                    <span id="statusText">Processing...</span>
+                    <span id="percentageText">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+            </div>
+
+            <div id="errorMsg" style="color: #ff7675; margin-top: 1rem; display: none; text-align: center;"></div>
+        </div>
+    </main>
+
+    <script>
+        const socket = io();
+        const btn = document.getElementById('downloadBtn');
+        const progressWrapper = document.getElementById('progressWrapper');
+        const progressBar = document.getElementById('progressBar');
+        const percentageText = document.getElementById('percentageText');
+        const statusText = document.getElementById('statusText');
+        const errorMsg = document.getElementById('errorMsg');
+
+        function startDownload() {
+            const url = document.getElementById('videoUrl').value;
+            
+            if(!url) {
+                alert("Please enter a URL");
+                return;
+            }
+
+            // 1. Reset UI
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+            btn.innerHTML = '<span>Connecting...</span> <i class="fas fa-circle-notch fa-spin"></i>';
+            progressWrapper.style.display = 'block';
+            errorMsg.style.display = 'none';
+            progressBar.style.width = '0%';
+            percentageText.innerText = '0%';
+
+            // 2. Emit event to Python Backend
+            socket.emit('start_video_download', {url: url});
+        }
+
+        // 3. Listen for Progress from Python
+        socket.on('progress', function(data) {
+            const percent = data.percentage;
+            progressBar.style.width = percent + '%';
+            percentageText.innerText = percent + '%';
+            
+            if(percent < 100) {
+                statusText.innerText = "Downloading Stream...";
+            } else {
+                statusText.innerText = "Finalizing File...";
+            }
+        });
+
+        // 4. Listen for Completion
+        socket.on('video_ready', function(data) {
+            statusText.innerText = "Download Complete!";
+            progressBar.style.backgroundColor = "#00b894"; // Turn green
+            
+            // Reset button
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            btn.innerHTML = '<span>Download Again</span> <i class="fas fa-redo"></i>';
+
+            // Trigger the file download in the browser
+            window.location.href = data.file_url;
+        });
+
+        // 5. Handle Errors
+        socket.on('error', function(data) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>Retry</span> <i class="fas fa-exclamation-triangle"></i>';
+            errorMsg.innerText = "Error: " + data.message;
+            errorMsg.style.display = 'block';
+            progressWrapper.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
